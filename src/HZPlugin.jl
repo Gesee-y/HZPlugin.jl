@@ -10,30 +10,48 @@ using Reexport
 using Cruise
 @reexport using Horizons
 
+struct HZRegistration
+	win::Any
+	args::Tuple
+end
+
 mutable struct HorizonManager
-	windows::Dict{HRenderer, WeakRef}
+	data::Dict{Type, HZRegistration}
+	backends::Dict{HRenderer, WeakRef}
 
 	## Constructor
 
-	HorizonManager() = new(Dict{HRenderer, WeakRef}())
+	HorizonManager() = new(Dict{Type, Tuple{WeakRef, HZRegistration}}(), Dict{HRenderer, WeakRef}())
 end
 
 const HZPLUGIN = CRPlugin()
 const MANAGER = HorizonManager()
 PHASE = :postupdate
 
-add_system!(HZPlugin, MANAGER)
+const ID = add_system!(HZPlugin, MANAGER)
+
+Horizons.connect(HORIZON_ERROR) do msg,err
+	node = ODPLUGIN.idtonode[ID]
+	setstatus(node, PLUGIN_ERR)
+	setlasterr(node, msg*err)
+end
 
 ################################################# PLUGIN LIFECYCLE ####################################################
 
 function Cruise.awake!(n::CRPluginNode{ODApp})
-	InitHorizons()
+	for (R, data) in MANAGER.data
+		win = data.win
+		backend = InitBackend(R, win, data.args...)
+		MANAGER.backends[backend] = WeakRef(win)
+	end
+
+	empty!(MANAGER.data)
 	setstatus(n, PLUGIN_OK)
 end
 
 function Cruise.update!(n::CRPluginNode{ODApp})
 	manager = n.obj
-	backends = keys(manager.windows)
+	backends = keys(manager.backends)
 	for backend in backends
 		SetDrawColor(backend,WHITE)
         ClearViewport(backend)
@@ -42,17 +60,11 @@ function Cruise.update!(n::CRPluginNode{ODApp})
 end
 
 function Cruise.shutdown!(n::CRPluginNode{ODApp})
-	QuitHorizons()
 	setstatus(n, PLUGIN_OFF)
 end
 
 ################################################## OTHER FUNCTIONS #####################################################
 
 function RegisterBackend(R::Type, win, args...)
-	backend = InitBackend(R, win, args...)
-	MANAGER.windows[backend] = WeakRef(win)
-end
-
-function QuitHorizons()
-	## Don't Know yet
+	MANAGER.windows[R] = HZRegistration(win,args)
 end
