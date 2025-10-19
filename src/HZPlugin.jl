@@ -28,10 +28,10 @@ const HZPLUGIN = CRPlugin()
 const MANAGER = HorizonManager()
 PHASE = :postupdate
 
-const ID = add_system!(HZPlugin, MANAGER)
+const ID = add_system!(HZPLUGIN, MANAGER)
 
 Horizons.connect(HORIZON_ERROR) do msg,err
-	node = ODPLUGIN.idtonode[ID]
+	node = HZPLUGIN.idtonode[ID]
 	setstatus(node, PLUGIN_ERR)
 	setlasterr(node, msg*err)
 end
@@ -53,7 +53,7 @@ function Cruise.update!(n::CRPluginNode{HorizonManager})
 	manager = n.obj
 	backends = keys(manager.backends)
 	for backend in backends
-		SetDrawColor(backend,WHITE)
+        SetDrawColor(backend,WHITE)
         ClearViewport(backend)
         UpdateRender(backend)
     end
@@ -66,5 +66,5 @@ end
 ################################################## OTHER FUNCTIONS #####################################################
 
 function RegisterBackend(R::Type, win, args...)
-	MANAGER.windows[R] = HZRegistration(win,args)
+	MANAGER.data[R] = HZRegistration(win,args)
 end
