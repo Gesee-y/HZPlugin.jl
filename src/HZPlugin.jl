@@ -38,7 +38,7 @@ end
 
 ################################################# PLUGIN LIFECYCLE ####################################################
 
-function Cruise.awake!(n::CRPluginNode{ODApp})
+function Cruise.awake!(n::CRPluginNode{HorizonManager})
 	for (R, data) in MANAGER.data
 		win = data.win
 		backend = InitBackend(R, win, data.args...)
@@ -49,7 +49,7 @@ function Cruise.awake!(n::CRPluginNode{ODApp})
 	setstatus(n, PLUGIN_OK)
 end
 
-function Cruise.update!(n::CRPluginNode{ODApp})
+function Cruise.update!(n::CRPluginNode{HorizonManager})
 	manager = n.obj
 	backends = keys(manager.backends)
 	for backend in backends
@@ -59,7 +59,7 @@ function Cruise.update!(n::CRPluginNode{ODApp})
     end
 end
 
-function Cruise.shutdown!(n::CRPluginNode{ODApp})
+function Cruise.shutdown!(n::CRPluginNode{HorizonManager})
 	setstatus(n, PLUGIN_OFF)
 end
 
