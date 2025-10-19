@@ -53,7 +53,7 @@ function Cruise.awake!(n::CRPluginNode{HorizonManager})
 	setstatus(n, PLUGIN_OK)
 end
 
-function Cruise.update!(n::CRPluginNode{HorizonManager})
+function Cruise.update!(n::CRPluginNode{HorizonManager}, dt)
 	manager = n.obj
 	backends = keys(manager.backends)
 	for (backend, winref) in manager.backends
