@@ -1,5 +1,5 @@
 #######################################################################################################################
-################################################ OUTDOORS PLUGIN ######################################################
+################################################ HORIZONS PLUGIN ######################################################
 #######################################################################################################################
 
 module HZPlugin
@@ -21,7 +21,7 @@ mutable struct HorizonManager
 
 	## Constructor
 
-	HorizonManager() = new(Dict{Type, Tuple{WeakRef, HZRegistration}}(), Dict{HRenderer, WeakRef}())
+	HorizonManager() = new(Dict{Type, HZRegistration}(), Dict{HRenderer, WeakRef}())
 end
 
 const HZPLUGIN = CRPlugin()
