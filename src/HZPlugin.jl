@@ -24,6 +24,10 @@ mutable struct HorizonManager
 	HorizonManager() = new(Dict{Type, HZRegistration}(), Dict{HRenderer, WeakRef}())
 end
 
+struct HZException <: Exception
+	msg::String
+end
+
 const HZPLUGIN = CRPlugin()
 const MANAGER = HorizonManager()
 PHASE = :postupdate
@@ -33,7 +37,7 @@ const ID = add_system!(HZPLUGIN, MANAGER)
 Horizons.connect(HORIZON_ERROR) do msg,err
 	node = HZPLUGIN.idtonode[ID]
 	setstatus(node, PLUGIN_ERR)
-	setlasterr(node, msg*err)
+	setlasterr(node, HZException(msg*err))
 end
 
 ################################################# PLUGIN LIFECYCLE ####################################################
@@ -52,7 +56,12 @@ end
 function Cruise.update!(n::CRPluginNode{HorizonManager})
 	manager = n.obj
 	backends = keys(manager.backends)
-	for backend in backends
+	for (backend, winref) in manager.backends
+		if isnothing(winref.value)
+			# Given that there are a small number of renderers in a game,
+			# No need to move memory to delete the deprecated backend, we can just skip them
+			continue
+		end
         SetDrawColor(backend,WHITE)
         ClearViewport(backend)
         UpdateRender(backend)
